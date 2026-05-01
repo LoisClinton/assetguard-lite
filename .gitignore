@@ -44,3 +44,5 @@ app-example
 
 # vscode settings
 .vscode/
+
+.env.local
