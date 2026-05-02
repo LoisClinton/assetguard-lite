@@ -2,34 +2,33 @@ import { dbPromise } from "../db/sqlite.native";
 import { starterJobs } from "../db/starterJobs";
 import { Job } from "../models/Job";
 
-export async function addJob(job: Omit<Job, "id">) {
+// addJob/addJobs should be an offline second operation (jobs shouldnt be added whilst offline but added FROM firestore once connectivity is restored)
+export async function addJob(job: Job) {
   const db = await dbPromise;
-  const id = `job-${Date.now()}`;
   await db.runAsync(
     `INSERT INTO jobs (id, siteName, assetName, dueDate, status) VALUES (?, ?, ?, ?, ?)`,
-    id,
+    job.id,
     job.siteName,
     job.assetName,
     job.dueDate,
     job.status,
   );
-  return { ...job, id };
+  return { ...job };
 }
 
-export async function addJobs(jobs: Omit<Job, "id">[]) {
+export async function addJobs(jobs: Job[]) {
   const db = await dbPromise;
   const addedJobs: Job[] = [];
   for (const job of jobs) {
-    const id = `job-${Date.now()}`;
     await db.runAsync(
       `INSERT INTO jobs (id, siteName, assetName, dueDate, status) VALUES (?, ?, ?, ?, ?)`,
-      id,
+      job.id,
       job.siteName,
       job.assetName,
       job.dueDate,
       job.status,
     );
-    addedJobs.push({ ...job, id });
+    addedJobs.push({ ...job });
   }
   return addedJobs;
 }

@@ -1,18 +1,18 @@
 import { Job } from "@/src/models/Job";
 import { starterJobs } from "../db/starterJobs";
 
-const JOBS_KEY = process.env.JOBS_KEY || "jobs";
+const JOBS_KEY = process.env.JOBS_KEY || "assetguard_jobs";
 
-export async function addJob(job: Omit<Job, "id">) {
+// addJob/addJobs should be an offline second operation (jobs shouldnt be added whilst offline but added FROM firestore once connectivity is restored)
+export async function addJob(job: Job) {
   const jobs = JSON.parse(localStorage.getItem(JOBS_KEY) || "[]");
-  const id = `job-${Date.now()}`;
-  const newJob = { ...job, id };
+  const newJob = { ...job };
   jobs.push(newJob);
   localStorage.setItem(JOBS_KEY, JSON.stringify(jobs));
   return newJob;
 }
 
-export async function addJobs(jobs: Omit<Job, "id">[]) {
+export async function addJobs(jobs: Job[]) {
   const addedJobs: Job[] = [];
   for (const job of jobs) {
     const addedJob = await addJob(job);
