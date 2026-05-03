@@ -1,17 +1,28 @@
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
+import { initDatabase } from "@/src/db/schema";
+import { seedJobs } from "@/src/repositories/jobsRepository";
 import { Stack } from "expo-router";
-
-import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useEffect, useState } from "react";
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Stack screenOptions={{ headerShown: true }} />
-    </ThemeProvider>
-  );
+  const [ready, setReady] = useState(false);
+
+  async function setup() {
+    await initDatabase();
+    await seedJobs();
+    setReady(true);
+  }
+
+  useEffect(() => {
+    setup();
+  }, []);
+
+  if (ready) {
+    return (
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(app)" />
+        <Stack.Screen name="(auth)" />
+      </Stack>
+    );
+  }
 }
