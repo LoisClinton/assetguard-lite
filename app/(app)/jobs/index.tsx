@@ -60,21 +60,28 @@ export default function JobsScreen() {
             <Pressable
               key={job.id}
               onPress={() => router.push(`/jobs/${job.id}`)}
-              style={{ borderWidth: 1, padding: 12 }}
+              style={{
+                borderWidth: 1,
+                padding: 12,
+                backgroundColor: "#2196f3",
+                borderColor: "#ffffff",
+                borderRadius: 15,
+              }}
             >
               <View
                 key={job.id}
                 style={{
                   marginBottom: 12,
                   padding: 12,
-                  borderWidth: 1,
-                  borderRadius: 4,
+                  borderRadius: 15,
                 }}
               >
-                <Text>Site: {job.siteName}</Text>
-                <Text>Asset: {job.assetName}</Text>
-                <Text>Due: {new Date(job.dueDate).toLocaleDateString()}</Text>
-                <Text>Status: {job.status}</Text>
+                <Text style={{ color: "#ffffff" }}>Site: {job.siteName}</Text>
+                <Text style={{ color: "#ffffff" }}>Asset: {job.assetName}</Text>
+                <Text style={{ color: "#ffffff" }}>
+                  Due: {new Date(job.dueDate).toLocaleDateString()}
+                </Text>
+                <Text style={{ color: "#ffffff" }}>Status: {job.status}</Text>
               </View>
             </Pressable>
           ))}
