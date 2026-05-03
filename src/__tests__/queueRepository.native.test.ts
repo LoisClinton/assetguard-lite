@@ -7,6 +7,7 @@ describe("queueRepository (native)", () => {
   let mockDb: any;
   let queueRepository: any;
   let mockInspection: Inspection;
+  let mockInspectionTwo: Inspection;
   let mockJob: Job;
 
   beforeEach(() => {
@@ -25,6 +26,14 @@ describe("queueRepository (native)", () => {
     mockInspection = {
       id: "inspection-1",
       jobId: "job-1",
+      notes: "Test inspection",
+      status: "draft",
+      updatedAt: "2026-05-03T10:00:00Z",
+    };
+
+    mockInspectionTwo = {
+      id: "inspection-2",
+      jobId: "job-2",
       notes: "Test inspection",
       status: "draft",
       updatedAt: "2026-05-03T10:00:00Z",
@@ -64,10 +73,11 @@ describe("queueRepository (native)", () => {
       const firstCall = mockDb.runAsync.mock.calls[0];
       const firstId = firstCall[1];
 
-      await queueRepository.createInspectionQueueItem(mockInspection);
+      await queueRepository.createInspectionQueueItem(mockInspectionTwo);
       const secondCall = mockDb.runAsync.mock.calls[1];
       const secondId = secondCall[1];
-
+      console.log("First ID:", firstId);
+      console.log("Second ID:", secondId);
       expect(firstId).toMatch(/^queue-/);
       expect(secondId).toMatch(/^queue-/);
       expect(firstId).not.toBe(secondId);

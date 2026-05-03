@@ -4,7 +4,7 @@ import { Job } from "../models/Job";
 
 export async function createInspectionQueueItem(inspection: Inspection) {
   const db = await dbPromise;
-  const queueItemId = `queue-${Date.now()}`;
+  const queueItemId = `queue-${inspection.id}-${Date.now()}`;
   await db.runAsync(
     `INSERT INTO sync_queue (id, entityType, entityId, operation, status, retryCount, queuedAt) 
         VALUES (?, ?, ?, ?, ?, ?, ?)`,
@@ -20,7 +20,7 @@ export async function createInspectionQueueItem(inspection: Inspection) {
 
 export async function updateInspectionQueueItem(inspection: Inspection) {
   const db = await dbPromise;
-  const queueItemId = `queue-${Date.now()}`;
+  const queueItemId = `queue-${inspection.id}-${Date.now()}`;
   await db.runAsync(
     `INSERT INTO sync_queue (id, entityType, entityId, operation, status, retryCount, queuedAt) 
         VALUES (?, ?, ?, ?, ?, ?, ?)`,
@@ -36,7 +36,7 @@ export async function updateInspectionQueueItem(inspection: Inspection) {
 
 export async function createJobQueueItem(job: Job) {
   const db = await dbPromise;
-  const queueItemId = `queue-${Date.now()}`;
+  const queueItemId = `queue-${job.id}-${Date.now()}`;
   await db.runAsync(
     `INSERT INTO sync_queue (id, entityType, entityId, operation, status, retryCount, queuedAt) 
         VALUES (?, ?, ?, ?, ?, ?, ?)`,
@@ -52,7 +52,7 @@ export async function createJobQueueItem(job: Job) {
 
 export async function updateJobQueueItem(job: Job) {
   const db = await dbPromise;
-  const queueItemId = `queue-${Date.now()}`;
+  const queueItemId = `queue-${job.id}-${Date.now()}`;
   await db.runAsync(
     `INSERT INTO sync_queue (id, entityType, entityId, operation, status, retryCount, queuedAt) 
         VALUES (?, ?, ?, ?, ?, ?, ?)`,
