@@ -2,7 +2,10 @@ import { dbPromise } from "../db/sqlite.native";
 import { Inspection } from "../models/Inspection";
 import { Job } from "../models/Job";
 
-export async function createInspectionQueueItem(inspection: Inspection) {
+export async function saveInspectionQueueItem(
+  inspection: Inspection,
+  operation: "create" | "update",
+) {
   const db = await dbPromise;
   const queueItemId = `queue-${inspection.id}-${Date.now()}`;
   await db.runAsync(
@@ -11,30 +14,17 @@ export async function createInspectionQueueItem(inspection: Inspection) {
     queueItemId,
     "inspection",
     inspection.id,
-    "create",
+    operation,
     "pending",
     0,
     new Date().toISOString(),
   );
 }
 
-export async function updateInspectionQueueItem(inspection: Inspection) {
-  const db = await dbPromise;
-  const queueItemId = `queue-${inspection.id}-${Date.now()}`;
-  await db.runAsync(
-    `INSERT INTO sync_queue (id, entityType, entityId, operation, status, retryCount, queuedAt) 
-        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    queueItemId,
-    "inspection",
-    inspection.id,
-    "update",
-    "pending",
-    0,
-    new Date().toISOString(),
-  );
-}
-
-export async function createJobQueueItem(job: Job) {
+export async function saveJobQueueItem(
+  job: Job,
+  operation: "create" | "update",
+) {
   const db = await dbPromise;
   const queueItemId = `queue-${job.id}-${Date.now()}`;
   await db.runAsync(
@@ -43,23 +33,7 @@ export async function createJobQueueItem(job: Job) {
     queueItemId,
     "job",
     job.id,
-    "create",
-    "pending",
-    0,
-    new Date().toISOString(),
-  );
-}
-
-export async function updateJobQueueItem(job: Job) {
-  const db = await dbPromise;
-  const queueItemId = `queue-${job.id}-${Date.now()}`;
-  await db.runAsync(
-    `INSERT INTO sync_queue (id, entityType, entityId, operation, status, retryCount, queuedAt) 
-        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    queueItemId,
-    "job",
-    job.id,
-    "update",
+    operation,
     "pending",
     0,
     new Date().toISOString(),

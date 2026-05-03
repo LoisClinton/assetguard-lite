@@ -1,5 +1,6 @@
 import { dbPromise } from "../db/sqlite.native";
 import { Inspection } from "../models/Inspection";
+import { saveInspectionQueueItem } from "./queueRepository.native";
 
 export async function saveInspection(record: Inspection) {
   const db = await dbPromise;
@@ -15,6 +16,7 @@ export async function saveInspection(record: Inspection) {
     record.status,
     record.updatedAt,
   );
+  saveInspectionQueueItem(record, "create");
 }
 
 export async function updateInspection(record: Inspection) {
@@ -29,6 +31,7 @@ export async function updateInspection(record: Inspection) {
     record.updatedAt,
     record.id,
   );
+  saveInspectionQueueItem(record, "update");
 }
 
 export async function getInspectionById(id: string) {

@@ -1,4 +1,5 @@
 import { Inspection } from "../models/Inspection";
+import { saveInspectionQueueItem } from "./queueRepository.web";
 const INSPECTION_KEY = "assetguard_inspections";
 
 export function getInspections(): Inspection[] {
@@ -16,6 +17,10 @@ export function getInspectionById(id: string): Inspection | null {
 
 export function saveInspections(inspections: Inspection[]) {
   localStorage.setItem(INSPECTION_KEY, JSON.stringify(inspections));
+  for (const inspection of inspections) {
+    saveInspectionQueueItem(inspection, "create");
+    console.log("💾 Saved inspection:", inspection);
+  }
 }
 
 export async function saveInspection(inspection: Inspection) {
@@ -38,6 +43,7 @@ export async function updateInspection(inspection: Inspection) {
 
   inspections[inspectionIndex] = inspection;
   saveInspections(inspections);
+  saveInspectionQueueItem(inspection, "update");
 }
 
 export async function markInspectionComplete(id: string) {

@@ -3,14 +3,17 @@ import { Job } from "../models/Job";
 const INSPECTION_KEY = "assetguard_inspections";
 const SYNC_QUEUE_KEY = "assetguard_sync_queue";
 
-export const createInspectionQueueItem = async (inspection: Inspection) => {
+export const saveInspectionQueueItem = async (
+  inspection: Inspection,
+  operation: "create" | "update",
+) => {
   const syncQueue = JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY) || "[]");
   const queueItemId = `queue-${Date.now()}`;
   syncQueue.push({
     id: queueItemId,
     entityType: "inspection",
     entityId: inspection.id,
-    operation: "create",
+    operation: operation,
     status: "pending",
     retryCount: 0,
     queuedAt: new Date().toISOString(),
@@ -18,44 +21,17 @@ export const createInspectionQueueItem = async (inspection: Inspection) => {
   localStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify(syncQueue));
 };
 
-export const updateInspectionQueueItem = async (inspection: Inspection) => {
-  const syncQueue = JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY) || "[]");
-  const queueItemId = `queue-${Date.now()}`;
-  syncQueue.push({
-    id: queueItemId,
-    entityType: "inspection",
-    entityId: inspection.id,
-    operation: "update",
-    status: "pending",
-    retryCount: 0,
-    queuedAt: new Date().toISOString(),
-  });
-  localStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify(syncQueue));
-};
-
-export const createJobQueueItem = async (job: Job) => {
+export const saveJobQueueItem = async (
+  job: Job,
+  operation: "create" | "update",
+) => {
   const syncQueue = JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY) || "[]");
   const queueItemId = `queue-${Date.now()}`;
   syncQueue.push({
     id: queueItemId,
     entityType: "job",
     entityId: job.id,
-    operation: "create",
-    status: "pending",
-    retryCount: 0,
-    queuedAt: new Date().toISOString(),
-  });
-  localStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify(syncQueue));
-};
-
-export const updateJobQueueItem = async (job: Job) => {
-  const syncQueue = JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY) || "[]");
-  const queueItemId = `queue-${Date.now()}`;
-  syncQueue.push({
-    id: queueItemId,
-    entityType: "job",
-    entityId: job.id,
-    operation: "update",
+    operation: operation,
     status: "pending",
     retryCount: 0,
     queuedAt: new Date().toISOString(),
