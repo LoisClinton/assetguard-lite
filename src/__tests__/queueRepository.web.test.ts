@@ -32,9 +32,9 @@ describe("queueRepository (web)", () => {
     localStorage.clear();
   });
 
-  describe("createInspectionQueueItem", () => {
+  describe("saveInspectionQueueItem", () => {
     it("should add a queue item for creating an inspection", async () => {
-      await queueRepository.createInspectionQueueItem(mockInspection);
+      await queueRepository.saveInspectionQueueItem(mockInspection, "create");
 
       const stored = JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY) || "[]");
       expect(stored).toHaveLength(1);
@@ -48,14 +48,14 @@ describe("queueRepository (web)", () => {
     });
 
     it("should generate a unique queue item id", async () => {
-      await queueRepository.createInspectionQueueItem(mockInspection);
+      await queueRepository.saveInspectionQueueItem(mockInspection, "create");
       const firstId = JSON.parse(
         localStorage.getItem(SYNC_QUEUE_KEY) || "[]",
       )[0].id;
 
       await new Promise((resolve) => setTimeout(resolve, 1));
 
-      await queueRepository.createInspectionQueueItem(mockInspection);
+      await queueRepository.saveInspectionQueueItem(mockInspection, "create");
       const secondId = JSON.parse(
         localStorage.getItem(SYNC_QUEUE_KEY) || "[]",
       )[1].id;
@@ -66,7 +66,7 @@ describe("queueRepository (web)", () => {
     });
 
     it("should set status to pending and retryCount to 0", async () => {
-      await queueRepository.createInspectionQueueItem(mockInspection);
+      await queueRepository.saveInspectionQueueItem(mockInspection, "create");
 
       const stored = JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY) || "[]");
       expect(stored[0].status).toBe("pending");
@@ -86,17 +86,15 @@ describe("queueRepository (web)", () => {
 
       localStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify([existingItem]));
 
-      await queueRepository.createInspectionQueueItem(mockInspection);
+      await queueRepository.saveInspectionQueueItem(mockInspection, "create");
 
       const stored = JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY) || "[]");
       expect(stored).toHaveLength(2);
       expect(stored[0]).toEqual(existingItem);
     });
-  });
 
-  describe("updateInspectionQueueItem", () => {
     it("should add a queue item for updating an inspection", async () => {
-      await queueRepository.updateInspectionQueueItem(mockInspection);
+      await queueRepository.saveInspectionQueueItem(mockInspection, "update");
 
       const stored = JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY) || "[]");
       expect(stored[0]).toMatchObject({
@@ -108,16 +106,16 @@ describe("queueRepository (web)", () => {
     });
 
     it("should mark operation as update", async () => {
-      await queueRepository.updateInspectionQueueItem(mockInspection);
+      await queueRepository.saveInspectionQueueItem(mockInspection, "update");
 
       const stored = JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY) || "[]");
       expect(stored[0].operation).toBe("update");
     });
   });
 
-  describe("createJobQueueItem", () => {
+  describe("saveJobQueueItem", () => {
     it("should add a queue item for creating a job", async () => {
-      await queueRepository.createJobQueueItem(mockJob);
+      await queueRepository.saveJobQueueItem(mockJob, "create");
 
       const stored = JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY) || "[]");
       expect(stored[0]).toMatchObject({
@@ -129,16 +127,14 @@ describe("queueRepository (web)", () => {
     });
 
     it("should set entityType to job", async () => {
-      await queueRepository.createJobQueueItem(mockJob);
+      await queueRepository.saveJobQueueItem(mockJob, "create");
 
       const stored = JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY) || "[]");
       expect(stored[0].entityType).toBe("job");
     });
-  });
 
-  describe("updateJobQueueItem", () => {
     it("should add a queue item for updating a job", async () => {
-      await queueRepository.updateJobQueueItem(mockJob);
+      await queueRepository.saveJobQueueItem(mockJob, "update");
 
       const stored = JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY) || "[]");
       expect(stored[0]).toMatchObject({
@@ -405,17 +401,17 @@ describe("queueRepository (web)", () => {
 
   describe("integration scenarios", () => {
     it("should handle mixed inspection and job queue items", async () => {
-      await queueRepository.createInspectionQueueItem(mockInspection);
-      await queueRepository.createJobQueueItem(mockJob);
-      await queueRepository.updateInspectionQueueItem(mockInspection);
-      await queueRepository.updateJobQueueItem(mockJob);
+      await queueRepository.saveInspectionQueueItem(mockInspection, "create");
+      await queueRepository.saveJobQueueItem(mockJob, "create");
+      await queueRepository.saveInspectionQueueItem(mockInspection, "update");
+      await queueRepository.saveJobQueueItem(mockJob, "update");
 
       const stored = JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY) || "[]");
       expect(stored).toHaveLength(4);
     });
 
     it("should track queue item lifecycle: create -> synced", async () => {
-      await queueRepository.createInspectionQueueItem(mockInspection);
+      await queueRepository.saveInspectionQueueItem(mockInspection, "create");
       let stored = JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY) || "[]");
       const itemId = stored[0].id;
       expect(stored[0].status).toBe("pending");
@@ -426,7 +422,7 @@ describe("queueRepository (web)", () => {
     });
 
     it("should track queue item lifecycle: create -> failed -> retried", async () => {
-      await queueRepository.createInspectionQueueItem(mockInspection);
+      await queueRepository.saveInspectionQueueItem(mockInspection, "create");
       let stored = JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY) || "[]");
       const itemId = stored[0].id;
 
@@ -446,13 +442,13 @@ describe("queueRepository (web)", () => {
 
     it("should use ISO timestamp for queuedAt", async () => {
       const beforeTime = new Date();
-      await queueRepository.createInspectionQueueItem(mockInspection);
+      await queueRepository.saveInspectionQueueItem(mockInspection, "create");
       const afterTime = new Date();
 
       const stored = JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY) || "[]");
       const queuedAt = stored[0].queuedAt;
 
-      expect(queuedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/); // ISO format
+      expect(queuedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
       expect(new Date(queuedAt).getTime()).toBeGreaterThanOrEqual(
         beforeTime.getTime(),
       );

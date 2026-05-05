@@ -52,9 +52,9 @@ describe("queueRepository (native)", () => {
     jest.unmock("../db/sqlite.native");
   });
 
-  describe("createInspectionQueueItem", () => {
+  describe("saveInspectionQueueItem", () => {
     it("should insert a queue item for creating an inspection", async () => {
-      await queueRepository.createInspectionQueueItem(mockInspection);
+      await queueRepository.saveInspectionQueueItem(mockInspection, "create");
 
       expect(mockDb.runAsync).toHaveBeenCalledWith(
         expect.stringContaining("INSERT INTO sync_queue"),
@@ -69,22 +69,24 @@ describe("queueRepository (native)", () => {
     });
 
     it("should generate a unique queue item id", async () => {
-      await queueRepository.createInspectionQueueItem(mockInspection);
+      await queueRepository.saveInspectionQueueItem(mockInspection, "create");
       const firstCall = mockDb.runAsync.mock.calls[0];
       const firstId = firstCall[1];
 
-      await queueRepository.createInspectionQueueItem(mockInspectionTwo);
+      await queueRepository.saveInspectionQueueItem(
+        mockInspectionTwo,
+        "create",
+      );
       const secondCall = mockDb.runAsync.mock.calls[1];
       const secondId = secondCall[1];
-      console.log("First ID:", firstId);
-      console.log("Second ID:", secondId);
+
       expect(firstId).toMatch(/^queue-/);
       expect(secondId).toMatch(/^queue-/);
       expect(firstId).not.toBe(secondId);
     });
 
     it("should set status to pending", async () => {
-      await queueRepository.createInspectionQueueItem(mockInspection);
+      await queueRepository.saveInspectionQueueItem(mockInspection, "create");
 
       expect(mockDb.runAsync).toHaveBeenCalledWith(
         expect.any(String),
@@ -97,11 +99,9 @@ describe("queueRepository (native)", () => {
         expect.any(String),
       );
     });
-  });
 
-  describe("updateInspectionQueueItem", () => {
     it("should insert a queue item for updating an inspection", async () => {
-      await queueRepository.updateInspectionQueueItem(mockInspection);
+      await queueRepository.saveInspectionQueueItem(mockInspection, "update");
 
       expect(mockDb.runAsync).toHaveBeenCalledWith(
         expect.stringContaining("INSERT INTO sync_queue"),
@@ -116,16 +116,16 @@ describe("queueRepository (native)", () => {
     });
 
     it("should mark operation as update", async () => {
-      await queueRepository.updateInspectionQueueItem(mockInspection);
+      await queueRepository.saveInspectionQueueItem(mockInspection, "update");
 
       const call = mockDb.runAsync.mock.calls[0];
       expect(call[4]).toBe("update");
     });
   });
 
-  describe("createJobQueueItem", () => {
+  describe("saveJobQueueItem", () => {
     it("should insert a queue item for creating a job", async () => {
-      await queueRepository.createJobQueueItem(mockJob);
+      await queueRepository.saveJobQueueItem(mockJob, "create");
 
       expect(mockDb.runAsync).toHaveBeenCalledWith(
         expect.stringContaining("INSERT INTO sync_queue"),
@@ -140,16 +140,14 @@ describe("queueRepository (native)", () => {
     });
 
     it("should set entityType to job", async () => {
-      await queueRepository.createJobQueueItem(mockJob);
+      await queueRepository.saveJobQueueItem(mockJob, "create");
 
       const call = mockDb.runAsync.mock.calls[0];
       expect(call[2]).toBe("job");
     });
-  });
 
-  describe("updateJobQueueItem", () => {
     it("should insert a queue item for updating a job", async () => {
-      await queueRepository.updateJobQueueItem(mockJob);
+      await queueRepository.saveJobQueueItem(mockJob, "update");
 
       expect(mockDb.runAsync).toHaveBeenCalledWith(
         expect.stringContaining("INSERT INTO sync_queue"),
@@ -244,16 +242,16 @@ describe("queueRepository (native)", () => {
 
   describe("integration scenarios", () => {
     it("should handle mixed inspection and job queue items", async () => {
-      await queueRepository.createInspectionQueueItem(mockInspection);
-      await queueRepository.createJobQueueItem(mockJob);
-      await queueRepository.updateInspectionQueueItem(mockInspection);
-      await queueRepository.updateJobQueueItem(mockJob);
+      await queueRepository.saveInspectionQueueItem(mockInspection, "create");
+      await queueRepository.saveJobQueueItem(mockJob, "create");
+      await queueRepository.saveInspectionQueueItem(mockInspection, "update");
+      await queueRepository.saveJobQueueItem(mockJob, "update");
 
       expect(mockDb.runAsync).toHaveBeenCalledTimes(4);
     });
 
     it("should track retryCount as 0 for new items", async () => {
-      await queueRepository.createInspectionQueueItem(mockInspection);
+      await queueRepository.saveInspectionQueueItem(mockInspection, "create");
 
       const call = mockDb.runAsync.mock.calls[0];
       const retryCount = call[6];
@@ -262,13 +260,13 @@ describe("queueRepository (native)", () => {
 
     it("should use ISO timestamp for queuedAt", async () => {
       const beforeTime = new Date();
-      await queueRepository.createInspectionQueueItem(mockInspection);
+      await queueRepository.saveInspectionQueueItem(mockInspection, "create");
       const afterTime = new Date();
 
       const call = mockDb.runAsync.mock.calls[0];
       const queuedAt = call[7];
 
-      expect(queuedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/); // ISO format
+      expect(queuedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
       expect(new Date(queuedAt).getTime()).toBeGreaterThanOrEqual(
         beforeTime.getTime(),
       );
